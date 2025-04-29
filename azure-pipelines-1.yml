@@ -23,17 +23,17 @@ steps:
     testResultsFiles: '**/surefire-reports/TEST-*.xml'
     goals: 'package'
 
-# List files in the target directory to check if the artifact is created
+# List files in the correct target directory to verify jar location
 - script: |
-    echo "Listing contents of target directory..."
-    ls -al $(System.DefaultWorkingDirectory)/target
-  displayName: 'List Files in Target Directory'
+    echo "Listing contents of Amazon-Core/target directory..."
+    ls -al $(System.DefaultWorkingDirectory)/Amazon-Core/target
+  displayName: 'List Files in Amazon-Core/Target Directory'
 
-# Copy the artifact (.jar, .war, etc.) to staging directory
+# Copy the artifact (.jar) to staging directory from correct location
 - task: CopyFiles@2
   inputs:
-    SourceFolder: '$(System.DefaultWorkingDirectory)/target'
-    Contents: '**/*.jar'  # Adjust this if it's a .war or other type
+    SourceFolder: '$(System.DefaultWorkingDirectory)/Amazon-Core/target'
+    Contents: '**/*.jar'
     TargetFolder: '$(Build.ArtifactStagingDirectory)'
 
 # Publish to Azure DevOps Artifacts
