@@ -1,0 +1,53 @@
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  artifactName: 'java-artifact'
+  artifactPath: '$(Build.ArtifactStagingDirectory)'
+  storageAccount: 'gnareshstorage'
+  containerName: 'gncontainer1'
+
+steps:
+# Build Java project with Maven
+- task: Maven@3
+  inputs:
+    mavenPomFile: 'pom.xml'
+    mavenOptions: '-Xmx3072m'
+    javaHomeOption: 'JDKVersion'
+    jdkVersionOption: '1.11'
+    jdkArchitectureOption: 'x64'
+    publishJUnitResults: true
+    testResultsFiles: '**/surefire-reports/TEST-*.xml'
+    goals: 'package'
+
+# Copy the artifact (.jar, .war, etc.) to staging directory
+- task: CopyFiles@2
+  inputs:
+    SourceFolder: '$(System.DefaultWorkingDirectory)/target'
+    Contents: '**/*.jar'  # Adjust this if it's a .war or other type
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
+# Publish to Azure DevOps Artifacts
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: '$(artifactName)'
+    publishLocation: 'Container'
+
+# Upload to Azure Storage Container
+- task: AzureCLI@2
+  inputs:
+    azureSubscription: 'gnconn'
+    scriptType: 'bash'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      echo "Uploading artifact to Azure Blob Storage..."
+      az storage blob upload-batch \
+        --account-name $(storageAccount) \
+        --destination $(containerName) \
+        --source $(artifactPath) \
+        --auth-mode login
+  displayName: 'Upload Artifact to Azure Blob Storage'
