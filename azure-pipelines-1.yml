@@ -23,6 +23,12 @@ steps:
     testResultsFiles: '**/surefire-reports/TEST-*.xml'
     goals: 'package'
 
+# List files in the target directory to check if the artifact is created
+- script: |
+    echo "Listing contents of target directory..."
+    ls -al $(System.DefaultWorkingDirectory)/target
+  displayName: 'List Files in Target Directory'
+
 # Copy the artifact (.jar, .war, etc.) to staging directory
 - task: CopyFiles@2
   inputs:
